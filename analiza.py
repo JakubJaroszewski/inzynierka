@@ -31,7 +31,7 @@ def pNN50(arr):
     return float(pr/len(arr))
 def segmentation(arr):
     segmented_rr_intervals = []
-    interval_length = 302 # interwał co 302 przecidziały +/- 5 min 
+    interval_length = 302 # interwał co 302, przecidziały +/- 5 min 
     start_index = 0
     end_index = interval_length
     while end_index <= len(arr):
@@ -78,20 +78,18 @@ data_array1=data_array[1:len(data_array)]
 filtred_data_x,filtred_data_y=above_line(data_array0,data_array1)
 x=[600,1300]
 y=[600,1300]
-var_x=np.sqrt(statistics.variance(data_array0))
-var_y=np.sqrt(statistics.variance(data_array1))
 
-# The Porta indicator (PI) 
+#Porta indicator (PI) 
 points_below_line=len(data_array0)-len(filtred_data_x)
 P=points_below_line/len(data_array0)
-print("Porta indicator:",round(P,5))
+print("Porta indicator:",round(P*100,3),'%')
 
 
-#policenie guzik indicator (GI)
+#Guzik indicator (GI)
 up= dist_from_line(filtred_data_x,filtred_data_y)
 down= dist_from_line(data_array0,data_array1)
-GI=round(up/down,5)
-print("Guzik indicator:",GI)
+GI=round(up*100/down,3)
+print("Guzik indicator:",GI,'%')
 
 
 plt.figure(1)
@@ -119,8 +117,5 @@ plt.show()
 # plt.show()
 
 
-
-
-
-#time_domain_features = get_time_domain_features(data_array) #generalnie sie zgadza 
+#time_domain_features = get_time_domain_features(data_array)  
 #print(time_domain_features)
