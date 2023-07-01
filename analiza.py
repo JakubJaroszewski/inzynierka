@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import statistics
 from matplotlib.patches import Ellipse
+from scipy.fft import fft
 
 file_path = '1.txt'
 def read_data_from_file(file_path):
@@ -107,6 +108,8 @@ D=SD2(data_array0,mean_RR)
 ellipse = Ellipse([mean_RR,mean_RR], 2*D, 2*H, angle=45, fill=False, edgecolor='red', linewidth=2 )
 plt.gca().add_patch(ellipse)
 plt.show()
+
+
 # plt.subplot(1, 2, 2) 
 # plt.scatter(filtred_data_x,filtred_data_y)
 # plt.plot(x,y,color="green")
@@ -116,6 +119,19 @@ plt.show()
 # plt.ylabel('RR_n+1')
 # plt.show()
 
+
+time_values = np.cumsum(data_array)
+time_diffs = np.diff(time_values)
+frequency_spectrum = np.fft.fft(time_diffs)
+frequencies = np.fft.fftfreq(len(time_diffs))
+
+plt.plot(frequencies, np.sqrt(np.abs(frequency_spectrum)))
+plt.xlabel('Częstotliwość [Hz]')
+plt.ylabel('Amplituda [ms^2]')
+plt.title('Widmo częstotliwościowe')
+plt.ylim(0,100)
+plt.xlim(0,0.5)
+plt.show()
 
 #time_domain_features = get_time_domain_features(data_array)  
 #print(time_domain_features)
