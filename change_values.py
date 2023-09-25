@@ -1,6 +1,9 @@
 # program służy do wycinania liczb po kropce 983.349 ucina 349
-for i in range(2,43,1):
-  file_path='./data_update1/' + str(i)+ '.txt'
+for i in range(1,18,1):
+  if i == 0 :
+     file_path='./data_zdrowi2/rr' + '.txt'#+ str(i)
+  else:
+     file_path='./data_zdrowi2/rr' + '.txt.'+ str(i)
   with open(file_path, 'r') as file:
       lines = file.readlines()
   modified_lines = []

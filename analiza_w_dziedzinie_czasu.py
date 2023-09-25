@@ -81,7 +81,7 @@ def AlphaV(k,var,m,N,data):
             if i != j:
                 alpha+=heaviside(k*var-max_diff(data[i:i+m],data[j:j+m]))
     return alpha
-def ApEN(m,N,data,var):
+def SampEN(m,N,data,var):
     k=0.2 # przyjete 20 %
     return np.log(((N-m-2)/(N-m-1))*AlphaV(k,var,m,N,data)/AlphaV(k,var,m+1,N,data))   
 def count_elements_in_bins(data, bins):
@@ -102,24 +102,30 @@ for i in range(46):
   RMSSD_list.append(round(RMSSD(data_array[i]),2))
   pNN50_list.append(round(pNN50(data_array[i])*100,2))
   SDANN_list.append(segmentation(data_array[i]))
+
 # gg=get_nn_intervals(read_data_from_file('chf201.txt_N.csv'))
 # print(gg)
 # print(get_frequency_domain_features(gg, method='welch'))
-data_array_ill=[]
-for i in range(2,43,1):
-  file_path='./data_udar_niedok_mozgu/' + str(i)+ '.txt'
-  data_array_ill.append(read_data_from_file(file_path))
-meanRR_list_ill=[]
-SDNN_list_ill=[]
-RMSSD_list_ill=[]
-pNN50_list_ill=[]
-SDANN_list_ill=[]
-for i in range(41):
-  meanRR_list_ill.append(round(sum(data_array_ill[i])/len(data_array_ill[i]),2))
-  SDNN_list_ill.append(round(SDNN(data_array_ill[i],meanRR_list_ill[i]),2)) 
-  RMSSD_list_ill.append(round(RMSSD(data_array_ill[i]),2))
-  pNN50_list_ill.append(round(pNN50(data_array_ill[i])*100,2))
-  SDANN_list_ill.append(segmentation(data_array_ill[i]))
+
+
+# LICZENIE UDARU
+# data_array_ill=[]
+# for i in range(2,43,1):
+#   file_path='./data_udar_niedok_mozgu/' + str(i)+ '.txt'
+#   data_array_ill.append(read_data_from_file(file_path))
+# meanRR_list_ill=[]
+# SDNN_list_ill=[]
+# RMSSD_list_ill=[]
+# pNN50_list_ill=[]
+# SDANN_list_ill=[]
+# for i in range(41):
+#   meanRR_list_ill.append(round(sum(data_array_ill[i])/len(data_array_ill[i]),2))
+#   SDNN_list_ill.append(round(SDNN(data_array_ill[i],meanRR_list_ill[i]),2)) 
+#   RMSSD_list_ill.append(round(RMSSD(data_array_ill[i]),2))
+#   pNN50_list_ill.append(round(pNN50(data_array_ill[i])*100,2))
+#   SDANN_list_ill.append(segmentation(data_array_ill[i]))
+# KONIEC LICZNEIA
+
 
 data_array_heart=[]
 for i in range(2,29,1):
@@ -139,6 +145,7 @@ for i in range(24):
   RMSSD_list_heart.append(round(RMSSD(data_array_heart[i]),2))
   pNN50_list_heart.append(round(pNN50(data_array_heart[i])*100,2))
   SDANN_list_heart.append(segmentation(data_array_heart[i]))
+
 
 data_array_heart_failure=[]
 for i in range(0,23,1):
@@ -180,22 +187,51 @@ for i in range(25):
   pNN50_list_heart_AF.append(round(pNN50(data_array_heart_AF[i])*100,2))
   SDANN_list_heart_AF.append(segmentation(data_array_heart_AF[i]))
 
-entropy=[]
-for i in range(len(data_array)):
-   entropy.append(ApEN(2,len(data_array[i]),data_array[i],RMSSD_list[i]))
+# lista mówiąca o tym czy ktos zalicza sie do zdrowych czy do chorych 
+label0 = np.ones(len(data_array_heart))
+label1=np.zeros(118-len(data_array_heart))
+label= np.concatenate((label0, label1))
+
+data = {
+   'Średnie RR': meanRR_list+meanRR_list_heart+meanRR_list_heart_failure+meanRR_list_heart_AF,
+   'SDNN' : SDNN_list+SDNN_list_heart+SDNN_list_heart_failure+SDNN_list_heart_AF,
+   'RMSSD' : RMSSD_list+RMSSD_list_heart+RMSSD_list_heart_failure+RMSSD_list_heart_AF,
+   'pNN50' : pNN50_list+pNN50_list_heart+pNN50_list_heart_failure+pNN50_list_heart_AF,
+   'zdrowy' : label
+}
+import pandas as pd
+table = pd.DataFrame(data)
+print(table)
+
+# Liczenie Entropi
+# entropy=[]
+# entropy_ill=[]
+# entropy_heart=[]
+# entropy_heart_fauliure=[]
+# entropy_heart_AF=[]
+# for i in range(len(data_array)):
+#    entropy.append(SampEn(2,len(data_array[i]),data_array[i],RMSSD_list[i]))
+# #for i in range(len(data_array_ill)):
+# #   entropy_ill.append(SampEn(2,len(data_array_ill[i]),data_array_ill[i],RMSSD_list_ill[i]))
+# for i in range(len(data_array_heart)):
+#    entropy_heart.append(SampEn(2,len(data_array_heart[i]),data_array_heart[i],RMSSD_list_heart[i]))
+# for i in range(len(data_array_heart_failure)):
+#    entropy_heart_fauliure.append(SampEn(2,len(data_array_heart_failure[i]),data_array_heart_failure[i],RMSSD_list_heart_failure[i]))
+# for i in range(len(data_array_heart_AF)):
+#    entropy_heart_AF.append(SampEn(2,len(data_array_heart_AF[i]),data_array_heart_AF[i],RMSSD_list_heart_AF[i]))
 
 # plt.figure(figsize=(12, 12))
-# # Tworzenie histogramu
+# Tworzenie histogramu
 # bins=[450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100]
 # plt.subplot(2, 2, 1)
 # plt.hist(meanRR_list, bins=bins,label='Zdrowi')
-# plt.plot((900, 900), (0, 10), color='k', label='średnia')
-# plt.hist(meanRR_list_ill,bins=bins, color='red', label='Udar niedokorwienny mózgu')
+# plt.hist(meanRR_list_ill,bins=bins, color='red', label='Udar niedokorwienny mózgu') nie używam danych z udaru
 # plt.hist(meanRR_list_heart,bins=bins,color='green', label = 'niewydolność serca')
 # plt.hist(meanRR_list_heart_failure,bins=bins,color='c', label = 'nagła śmierć')
 # plt.hist(meanRR_list_heart_AF,bins=bins,color='magenta', label = 'migotanie przedsionków')
 # plt.ylabel('Liczba')
 # plt.legend()
+# plt.savefig('Histogram_interwaly_RR1.png')
 # plt.title('Histogram średniej interwałów RR w grupie 51 +/- 12 lat')
 
 #bins1=np.linspace(10,100,18)
@@ -230,137 +266,162 @@ for i in range(len(data_array)):
 # plt.title('Histogram pNN50 w grupie 51 +/- 12 lat')
 # plt.show()
 
-plt.figure(figsize=(16, 9))# Tworzenie histogramu
-bins1=np.linspace(10,100,18)
-bins1=np.round(bins1,2)
-SDNN_list1=count_elements_in_bins(SDNN_list, bins1)
-SDNN_list_heart1=count_elements_in_bins(SDNN_list_heart, bins1)
-SDNN_list_heart_failure1=count_elements_in_bins(SDNN_list_heart_failure, bins1)
-SDNN_list_heart_AF1=count_elements_in_bins(SDNN_list_heart_AF, bins1)
-SDNN_list_ill1=count_elements_in_bins(SDNN_list_ill,bins1)
-x_axis = np.arange(len(bins1))
-space=0.2                   
 
-plt.bar(x_axis+0.2,SDNN_list1, width=space, label='Zdrowi',edgecolor='black')
-plt.plot((5, 5), (0, 10), color='k', label='średnia', linestyle='--')
-plt.bar(x_axis+0.2*2, SDNN_list_ill1 , width=space, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
-plt.bar(x_axis + 0.2*3, SDNN_list_heart1 , width=space,  color='green', label='Niewydolność serca', edgecolor='black')
-plt.bar(x_axis + 0.2*4,SDNN_list_heart_failure1, width=space, color='c', label='Nagła śmierć', edgecolor='black')
-plt.bar(x_axis+0.2*5,SDNN_list_heart_AF1, width=space, color='m', label='migotanie przedsionów', edgecolor='black')
-plt.ylabel('Liczba')
-plt.xticks(x_axis+0.1,bins1)
-plt.legend()
-plt.title('Histogram SDNN w grupie 51 +/- 12 lat')
-#plt.tight_layout()
-# plt.savefig('Histogram_SDNN.png')
-# plt.show()
-
-
-plt.figure(figsize=(16, 9))# Tworzenie histogramu
-bins2=np.linspace(0,100,18)
-bins2=np.round(bins2,2)
-
-RMSSD_list1=count_elements_in_bins(RMSSD_list,bins2)
-RMSSD_list_ill1=count_elements_in_bins(RMSSD_list_ill,bins2)
-RMSSD_list_heart1=count_elements_in_bins(RMSSD_list_heart,bins2)
-RMSSD_list_heart_failure1=count_elements_in_bins(RMSSD_list_heart_failure,bins2)
-RMSSD_list_heart_AF1=count_elements_in_bins(RMSSD_list_heart_AF,bins2)
-x_axis = np.arange(len(bins2))
-space=0.2    
-
-plt.bar(x_axis+0.2,RMSSD_list1, width=space, label='Zdrowi',edgecolor='black')
-plt.plot((3.8, 3.8), (0, 12), color='k', label='średnia', linestyle='--')
-plt.bar(x_axis+0.2*2, RMSSD_list_ill1 , width=space, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
-plt.bar(x_axis + 0.2*3, RMSSD_list_heart1 , width=space,  color='green', label='Niewydolność serca', edgecolor='black')
-plt.bar(x_axis + 0.2*4,RMSSD_list_heart_failure1, width=space, color='c', label='Nagła śmierć', edgecolor='black')
-plt.bar(x_axis+0.2*5,RMSSD_list_heart_AF1, width=space, color='m', label='migotanie przedsionów', edgecolor='black')
-plt.ylabel('Liczba')
-plt.xticks(x_axis+0.1,bins2)
-plt.legend()
-plt.title('Histogram RMSSD w grupie 51 +/- 12 lat')
-#plt.tight_layout()
-# plt.savefig('Histogram_RMSSD.png')
-# plt.show()
-
-
-plt.figure(figsize=(16, 9))# Tworzenie histogramu
-bins3=np.linspace(0,40,8)
-bins3=np.round(bins3,2)
-
-pNN50_list1=count_elements_in_bins(pNN50_list,bins3)
-pNN50_list_ill1=count_elements_in_bins(pNN50_list_ill,bins3)
-pNN50_list_heart1=count_elements_in_bins(pNN50_list_heart,bins3)
-pNN50_list_heart_failure1=count_elements_in_bins(pNN50_list_heart_failure,bins3)
-pNN50_list_heart_AF1=count_elements_in_bins(pNN50_list_heart_AF,bins3)
-x_axis = np.arange(len(bins3))
-space=0.2   
-
-
-plt.bar(x_axis+0.2,pNN50_list1, width=space, label='Zdrowi',edgecolor='black')
-plt.plot((0.95, 0.95), (0, 35), color='k', label='średnia', linestyle='--')
-plt.bar(x_axis+0.2*2, pNN50_list_ill1 , width=space, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
-plt.bar(x_axis + 0.2*3, pNN50_list_heart1 , width=space,  color='green', label='Niewydolność serca', edgecolor='black')
-plt.bar(x_axis + 0.2*4,pNN50_list_heart_failure1, width=space, color='c', label='Nagła śmierć', edgecolor='black')
-plt.bar(x_axis+0.2*5,pNN50_list_heart_AF1, width=space, color='m', label='migotanie przedsionów', edgecolor='black')
-plt.ylabel('Liczba')
-plt.xticks(x_axis+0.1,bins3)
-plt.legend()
-plt.title('Histogram pNN50 w grupie 51 +/- 12 lat')
-#plt.tight_layout()
-# plt.savefig('Histogram_pNN50.png')
-# plt.show()
-
-
-plt.figure(figsize=(16, 9))# Tworzenie histogramu
-bins = [450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050,1100]
-# Utwórz przedziały dla słupków
-
-meanRR_list1=count_elements_in_bins(meanRR_list, bins)
-meanRR_list_heart1=count_elements_in_bins(meanRR_list_heart, bins)
-meanRR_list_heart_failure1=count_elements_in_bins( meanRR_list_heart_failure, bins)
-meanRR_list_ill1=count_elements_in_bins( meanRR_list_ill, bins)
-meanRR_list_heart_AF1=count_elements_in_bins(meanRR_list_heart_AF,bins)
-
-
-x_axis = np.arange(len(bins))# Rysuj słupki dla różnych kategorii
-
-plt.bar(x_axis+0.2,meanRR_list1, width=0.2, label='Zdrowi',edgecolor='black')
-plt.plot((9, 9), (0, 12), color='k', label='Średnia', linestyle='--')
-plt.bar(x_axis+0.2*2, meanRR_list_ill1, width=0.2, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
-plt.bar(x_axis + 0.2*3, meanRR_list_heart1, width=0.2,  color='green', label='Niewydolność serca', edgecolor='black')
-plt.bar(x_axis + 0.2*4, meanRR_list_heart_failure1, width=0.2, color='c', label='Nagła śmierć', edgecolor='black')
-plt.bar(x_axis+0.2*5, meanRR_list_heart_AF1, width=0.2, color='m', label='migotanie przedsionów', edgecolor='black')
-plt.ylabel('Liczba')
-plt.xlabel('Zakres interwałów RR [ms]')
-plt.xticks(x_axis+0.1,bins)
-plt.legend()
-plt.title('Histogram średniej interwałów RR w grupie 51 +/- 12 lat')
-#plt.tight_layout()
-#plt.savefig('Histogram_interwaly_RR.png')
-#plt.show()
-
-
-# bins4=np.linspace(10,100,18)
-# plt.subplot(2, 3, 5)
-# plt.hist(SDANN_list, bins=bins4, label='Zdrowi')
-# plt.plot((90, 90), (0, 10), color='k', label='srednia')
-# plt.hist(SDANN_list_ill,bins=bins4, color='red', label='Udar niedokorwienny mózgu')
+# HISTOGRAM SDNN 248-272
+# plt.figure(figsize=(16, 9))# Tworzenie histogramu
+# bins1=np.linspace(10,100,18)
+# bins1=np.round(bins1,2)
+# 
+# SDNN_list1=count_elements_in_bins(SDNN_list, bins1)
+# SDNN_list_heart1=count_elements_in_bins(SDNN_list_heart, bins1)
+# SDNN_list_heart_failure1=count_elements_in_bins(SDNN_list_heart_failure, bins1)
+# SDNN_list_heart_AF1=count_elements_in_bins(SDNN_list_heart_AF, bins1)
+# SDNN_list_ill1=count_elements_in_bins(SDNN_list_ill,bins1)
+# x_axis = np.arange(len(bins1))
+# space=0.25                  
+# 
+# plt.bar(x_axis+0.25,SDNN_list1, width=space, label='Zdrowi',edgecolor='black')
+##plt.bar(x_axis+0.2*2, SDNN_list_ill1 , width=space, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
+# plt.bar(x_axis+0.25*2,SDNN_list_heart_AF1, width=space, color='m', label='migotanie przedsionów', edgecolor='black')
+# plt.bar(x_axis + 0.25*3, SDNN_list_heart1 , width=space,  color='green', label='Niewydolność serca', edgecolor='black')
+# plt.bar(x_axis + 0.25*4,SDNN_list_heart_failure1, width=space, color='c', label='Nagła śmierć', edgecolor='black')
 # plt.ylabel('Liczba')
-# plt.title('Histogram SDANN w grupie 51 +/- 12 lat')
+# plt.xticks(x_axis+0.1,bins1)
 # plt.legend()
+# plt.title('Histogram SDNN w grupie 51 +/- 12 lat')
+# plt.tight_layout()
+# plt.savefig('Histogram_SDNN1.png')
 # plt.show()
 
- 
-plt.figure(figsize=(16, 9))
-bins4=np.linspace(0,3,13)
-plt.hist(entropy, bins=bins4,label='Sample Entropy dla k=0.2', color='g',edgecolor='black')
-plt.xticks(bins4)
-plt.ylabel('Liczba')
-plt.xlabel('Entropia')
-plt.legend()
-plt.title('Sample Entropy w grupie 51 +/- 12 lat')
-plt.show()
+# HISTOGRAM RMSSD 272-296
+# plt.figure(figsize=(16, 9))# Tworzenie histogramu
+# bins2=np.linspace(0,100,18)
+# bins2=np.round(bins2,2)
+# 
+# RMSSD_list1=count_elements_in_bins(RMSSD_list,bins2)
+# RMSSD_list_ill1=count_elements_in_bins(RMSSD_list_ill,bins2)
+# RMSSD_list_heart1=count_elements_in_bins(RMSSD_list_heart,bins2)
+# RMSSD_list_heart_failure1=count_elements_in_bins(RMSSD_list_heart_failure,bins2)
+# RMSSD_list_heart_AF1=count_elements_in_bins(RMSSD_list_heart_AF,bins2)
+# x_axis = np.arange(len(bins2))
+# space=0.25    
+# 
+# plt.bar(x_axis+0.25,RMSSD_list1, width=space, label='Zdrowi',edgecolor='black')
+##plt.bar(x_axis+0.2*2, RMSSD_list_ill1 , width=space, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
+# plt.bar(x_axis+0.25*2,RMSSD_list_heart_AF1, width=space, color='m', label='migotanie przedsionów', edgecolor='black')
+# plt.bar(x_axis + 0.25*3, RMSSD_list_heart1 , width=space,  color='green', label='Niewydolność serca', edgecolor='black')
+# plt.bar(x_axis + 0.25*4,RMSSD_list_heart_failure1, width=space, color='c', label='Nagła śmierć', edgecolor='black')
+# plt.ylabel('Liczba')
+# plt.xticks(x_axis+0.1,bins2)
+# plt.legend()
+# plt.title('Histogram RMSSD w grupie 51 +/- 12 lat')
+# plt.tight_layout()
+# plt.savefig('Histogram_RMSSD1.png')
+# plt.show()
 
+# HISTOGRAM pNN50 299-325
+# plt.figure(figsize=(16, 9))# Tworzenie histogramu
+# bins3=np.linspace(0,40,8)
+# bins3=np.round(bins3,2)
+# 
+# pNN50_list1=count_elements_in_bins(pNN50_list,bins3)
+# pNN50_list_ill1=count_elements_in_bins(pNN50_list_ill,bins3)
+# pNN50_list_heart1=count_elements_in_bins(pNN50_list_heart,bins3)
+# pNN50_list_heart_failure1=count_elements_in_bins(pNN50_list_heart_failure,bins3)
+# pNN50_list_heart_AF1=count_elements_in_bins(pNN50_list_heart_AF,bins3)
+# x_axis = np.arange(len(bins3))
+# space=0.25   
+# 
+# 
+# plt.bar(x_axis+0.25,pNN50_list1, width=space, label='Zdrowi',edgecolor='black')
+#plt.bar(x_axis+0.2*2, pNN50_list_ill1 , width=space, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
+# plt.bar(x_axis+0.25*2,pNN50_list_heart_AF1, width=space, color='m', label='migotanie przedsionów', edgecolor='black')
+# plt.bar(x_axis + 0.25*3, pNN50_list_heart1 , width=space,  color='green', label='Niewydolność serca', edgecolor='black')
+# plt.bar(x_axis + 0.25*4,pNN50_list_heart_failure1, width=space, color='c', label='Nagła śmierć', edgecolor='black')
+# 
+# plt.ylabel('Liczba')
+# plt.xticks(x_axis+0.1,bins3)
+# plt.legend()
+# plt.title('Histogram pNN50 w grupie 51 +/- 12 lat')
+# plt.tight_layout()
+# plt.savefig('Histogram_pNN501.png')
+# plt.show()
+
+# HISTOGRAM INTERWAŁY RR 327-351
+# plt.figure(figsize=(16, 9))# Tworzenie histogramu
+# bins = [450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050,1100]
+# # Utwórz przedziały dla słupków
+
+# meanRR_list1=count_elements_in_bins(meanRR_list, bins)
+# meanRR_list_heart1=count_elements_in_bins(meanRR_list_heart, bins)
+# meanRR_list_heart_failure1=count_elements_in_bins( meanRR_list_heart_failure, bins)
+# meanRR_list_ill1=count_elements_in_bins( meanRR_list_ill, bins)
+# meanRR_list_heart_AF1=count_elements_in_bins(meanRR_list_heart_AF,bins)
+
+
+# x_axis = np.arange(len(bins))# Rysuj słupki dla różnych kategorii
+# plt.bar(x_axis+0.25,meanRR_list1, width=0.25, label='Zdrowi',edgecolor='black')
+# #plt.bar(x_axis+0.2*2, meanRR_list_ill1, width=0.2, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
+# plt.bar(x_axis+0.25*2, meanRR_list_heart_AF1, width=0.25, color='m', label='migotanie przedsionów', edgecolor='black')
+# plt.bar(x_axis + 0.25*3, meanRR_list_heart1, width=0.25,  color='green', label='Niewydolność serca', edgecolor='black')
+# plt.bar(x_axis + 0.25*4, meanRR_list_heart_failure1, width=0.25, color='c', label='Nagła śmierć', edgecolor='black')
+# plt.ylabel('Liczba')
+# plt.xlabel('Zakres interwałów RR [ms]')
+# plt.xticks(x_axis+0.1,bins)
+# plt.legend()
+# plt.title('Histogram średniej interwałów RR w grupie 51 +/- 12 lat')
+# plt.savefig('Histogram_interwaly_RR1.png')
+# plt.show()
+
+
+# # bins4=np.linspace(10,100,18)
+# # plt.subplot(2, 3, 5)
+# # plt.hist(SDANN_list, bins=bins4, label='Zdrowi')
+# # plt.plot((90, 90), (0, 10), color='k', label='srednia')
+# # plt.hist(SDANN_list_ill,bins=bins4, color='red', label='Udar niedokorwienny mózgu')
+# # plt.ylabel('Liczba')
+# # plt.title('Histogram SDANN w grupie 51 +/- 12 lat')
+# # plt.legend()
+# # plt.show()
+
+# LICZENIE ENTROPI
+# plt.figure(figsize=(16, 9))
+# bins4=np.linspace(0,3,13)
+# plt.hist(entropy, bins=bins4,label='Sample Entropy dla k=0.2', color='g',edgecolor='black')
+# plt.xticks(bins4)
+# plt.ylabel('Liczba')
+# plt.xlabel('Entropia')
+# plt.legend()
+# plt.title('Sample Entropy w grupie 51 +/- 12 lat')
+# plt.show()
+# # bins3=np.linspace(0,40,8)
+# # bins3=np.round(bins3,2)
+
+# plt.figure(figsize=(16, 9))# Tworzenie histogramu
+# bins4=np.linspace(0,2.5,13)
+# # Utwórz przedziały dla słupków
+# bins4=np.round(bins4,2)
+
+
+# entropy1=count_elements_in_bins(entropy, bins4)
+# entropy_ill1=count_elements_in_bins(entropy_ill, bins4)
+# entropy_heart1=count_elements_in_bins( entropy_heart, bins4)
+# entropy_heart_fauliure1=count_elements_in_bins( entropy_heart_fauliure, bins4)
+# entropy_heart_AF1=count_elements_in_bins(entropy_heart_AF,bins4)
+
+
+# x_axis = np.arange(len(bins4))# Rysuj słupki dla różnych kategorii
+# plt.bar(x_axis+0.2,entropy1, width=0.2, label='Zdrowi',edgecolor='black')
+# plt.bar(x_axis+0.2*2, entropy_heart_AF1, width=0.2, color='m', label='migotanie przedsionów', edgecolor='black')
+# #plt.bar(x_axis+0.2*2, entropy_ill1, width=0.2, color='red', label='Udar niedokrwienny mózgu', edgecolor='black')
+# plt.bar(x_axis + 0.2*3, entropy_heart1, width=0.2,  color='green', label='Niewydolność serca', edgecolor='black')
+# plt.bar(x_axis + 0.2*4, entropy_heart_fauliure1, width=0.2, color='c', label='Nagła śmierć', edgecolor='black')
+# plt.ylabel('Liczba')
+# plt.xticks(x_axis+0.1,bins4)
+# plt.legend()
+# plt.title('Histogram Sample Entropy')
+# plt.savefig('Historgram_entropii1.png')
+# plt.show()
 
 # Tworzenie histogramu
 # bins=[450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100]
