@@ -195,7 +195,7 @@ y = table['zdrowy']
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-rf = RandomForestClassifier(n_estimators=87,max_depth=2)
+rf = RandomForestClassifier(n_estimators=87,max_depth=5)
 rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
@@ -203,11 +203,11 @@ print("Accuracy:", round(accuracy,4)*100, "%")
 
 from sklearn.tree import plot_tree
 
-for i in range(3):
+for i in range(1):
     plt.figure(figsize=(12, 8))
     tree = rf.estimators_[i]
-    plot_tree(tree, feature_names=X_train.columns.tolist(),filled=True,max_depth=2, impurity=False,proportion=True,rounded=True,fontsize=10)
-    plt.title(f"Drzewo {i + 1}")
+    plot_tree(tree, feature_names=X_train.columns.tolist(),filled=True,max_depth=5, impurity=False,proportion=True,rounded=True,fontsize=10)
+    plt.savefig("drzewo_losowe.png")
     plt.show()
 
 param_dist = {'n_estimators': randint(50,500),
