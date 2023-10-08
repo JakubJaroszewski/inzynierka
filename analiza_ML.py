@@ -15,6 +15,7 @@ from sklearn import metrics #Import scikit-learn metrics module for accuracy cal
 import hrvanalysis as hrv
 import warnings
 warnings.filterwarnings("ignore")
+import random
 
 def read_data_from_file(file_path):
     data = []
@@ -230,7 +231,13 @@ counterDT = 0
 counterRF = 0
 counterXGB = 0
 
-for i in range(300):
+AccXGB_arr=[]
+AccDT_arr=[]
+AccLR_arr=[]
+AccRF_arr=[]
+AccSVM_arr=[]
+
+for i in range(100):
 #SVM
   from sklearn.model_selection import train_test_split
   from sklearn import svm
@@ -242,6 +249,7 @@ for i in range(300):
   clf.fit(X_train1, y_train1)
   y_pred = clf.predict(X_test1)
   AccSVM = round(metrics.accuracy_score(y_test1, y_pred)*100,2)
+  AccSVM_arr.append(AccSVM)
   print("SVM: Accuracy:",AccSVM,'%')
 
 
@@ -257,6 +265,7 @@ for i in range(300):
   y_pred = logreg.predict(X_test)
   accuracy = accuracy_score(y_test, y_pred)
   AccLR = round(accuracy*100,2)
+  AccLR_arr.append(AccLR)
   print("Logistic Regresion: Accuracy:",AccLR ,"%")
 
   # Wykres
@@ -276,10 +285,11 @@ for i in range(300):
   X = table[feature_cols] 
   y = table.zdrowy 
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1) # 70% training and 30% test
-  clf = DecisionTreeClassifier(criterion="entropy", max_depth=6)
+  clf = DecisionTreeClassifier(max_depth= random.randint(2, 16))
   clf = clf.fit(X_train,y_train)
   y_pred = clf.predict(X_test)
-  AccDT = round(metrics.accuracy_score(y_test, y_pred)*100,2)
+  AccDT = round(accuracy_score(y_test, y_pred)*100,2)
+  AccDT_arr.append(AccDT)
   print("Decition Tree: Accuracy:",AccDT, "%")
   #tree_rules = export_text(clf, feature_names=feature_cols, show_weights=True)
   #fig, ax = plt.subplots(figsize=(12, 12))
@@ -293,11 +303,12 @@ for i in range(300):
   X = table.drop('zdrowy', axis=1)
   y = table['zdrowy']
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-  rf = RandomForestClassifier(n_estimators=87,max_depth=2)
+  rf = RandomForestClassifier(n_estimators=87,max_depth= 2)
   rf.fit(X_train, y_train)
   y_pred = rf.predict(X_test)
   accuracy = accuracy_score(y_test, y_pred)
   AccRF = round(accuracy,4)*100
+  AccRF_arr.append(AccRF)
   print("Random Forest: Accuracy:",AccRF , "%")
 
 
@@ -321,6 +332,7 @@ for i in range(300):
   predictions = [round(value) for value in y_pred]
   accuracy = accuracy_score(y_test, predictions)
   AccXGB = round(accuracy * 100.0, 2)
+  AccXGB_arr.append(AccXGB)
   print("XGBoost: Accuracy:" ,AccXGB, "%")
 
   max_value = max(AccXGB,AccDT,AccLR,AccRF,AccSVM)
@@ -358,5 +370,22 @@ plt.title("Histogram najlepszych algorytmów")
 labels = ["SVM - Support Vector Machine", "LR - Logistic Regresion" ,  " DT - Decision Tree"," RF - Random Forest ",  "XGB - XGboost" ]
 handles = [bar for bar in bars] 
 plt.legend(handles, labels, loc='upper left')
-plt.savefig("Historgam_najlepszych_algorytmów.png")
+# plt.savefig("Historgam_najlepszych_algorytmów1.png")
 plt.show()
+
+
+fig, ax = plt.subplots(figsize=(10, 7))
+ax.boxplot([AccXGB_arr, AccDT_arr, AccRF_arr, AccLR_arr, AccSVM_arr], labels=['XGB', 'DT', 'RF', 'LR', 'SVM'],showfliers=False)
+ax.set_title("Box Plot'y dla danych z ML")
+plt.xlabel("Algorytm")
+plt.ylabel("Dokładność [%]")
+# plt.savefig("Wykres_Boxplot.png")
+plt.show()
+
+
+
+
+
+
+
+

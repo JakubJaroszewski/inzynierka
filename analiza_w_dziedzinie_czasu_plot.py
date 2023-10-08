@@ -6,6 +6,7 @@ import statistics
 from matplotlib.patches import Ellipse
 from scipy.fft import fft
 import sys
+import pandas as pd
 
 def main(ShowPoincarePlot, file_path_get,GeneratePDF):
     file_path = file_path_get
@@ -86,9 +87,116 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
     def ApEN(m,N,data,var):
         k=0.1 # przyjete 10 %
         return np.log(((N-m-2)/(N-m-1))*AlphaV(k,var,m,N,data)/AlphaV(k,var,m+1,N,data))
+    from scipy import signal
+    from scipy.integrate import trapz
+    from scipy.interpolate import interp1d
+    # from hrv.io import read_from_csv
+    # from hrv.detrend import sg_detrend
+    def frequencydomain(rr, show_plt):
+        # Interpolating rr intervals series
+        fs = 4.0 # sampling
+        steps = 1/fs # lenght of the step
+        x = np.arange(1,np.max(rr.index),steps)
+        list = []
+        for i in range(0,len(x)+1):
+            if i % 4 == 0:
+                list.append(rr['RR'][int(i/fs)])
+            else:
+                list.append(None)
+        rr_interp = pd.DataFrame(list)
+        rr_interp = rr_interp.interpolate(method='cubic')
 
-        
+        # Estimating the spectral density
+        fxx, pxx = signal.welch(x=rr_interp[0], fs=fs)
+
+        band_vlf = (fxx >= 0) & (fxx < 0.04) # very low frequency
+        band_lf = (fxx >= 0.04) & (fxx < 0.15) # low frequency
+        band_hf = (fxx >= 0.15) & (fxx < 0.4) # high frequency
+
+        vlf_power = trapz(pxx[band_vlf], fxx[band_vlf])
+        lf_power = trapz(pxx[band_lf], fxx[band_lf])
+        hf_power = trapz(pxx[band_hf], fxx[band_hf])
+
+        total_power = vlf_power + lf_power + hf_power
+        lf_hf_ratio = lf_power / hf_power
+        if show_plt:
+            psd_f = interp1d(fxx,pxx)
+            x_vlf = np.linspace(0,0.04,100)
+            x_lf = np.linspace(0.04,0.15,100)
+            x_hf = np.linspace(0.15,0.4,100)
+
+            plt.figure(figsize=(20, 7))
+            plt.plot(fxx, pxx)
+            plt.gca().set_xlim(0, 0.5)
+            plt.gca().fill_between(x_vlf, psd_f(x_vlf), alpha = 0.2, color = 'green', label = 'VLF')
+            plt.gca().fill_between(x_lf, psd_f(x_lf), alpha = 0.2, color = 'yellow', label = 'LF')
+            plt.gca().fill_between(x_hf, psd_f(x_hf), alpha = 0.2,  color = 'red', label = 'HF')
+            plt.title("FFT Spectrum (Welch's periodogram) ")
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Density")
+            plt.legend()
+            plt.savefig('WykresMocySygnalu.png')
+            plt.show()
+
+        return float(lf_power), float(hf_power), float(total_power), float(lf_hf_ratio)
     import hrvanalysis as hrv
+
+    # def read_and_detrend_hrv(file_path):
+    #     data = []
+    #     with open(file_path, 'r') as file:
+    #         for line in file:
+    #             value = float(line.strip())
+    #             data.append(value)
+    #     return data
+    # data_array=[]
+    # for i in range(2,47,1):
+    #     if i == 33 or i == 32:
+    #         continue    
+    #     file_path='./data_zdrowi/' + str(i)+ '.txt'
+    #     data_array.append(read_and_detrend_hrv(file_path))
+    # data_array_NN=[]
+    # for i in range(len(data_array)):
+    #     data_array_NN.append(hrv.get_nn_intervals(data_array[i],verbose= False))
+    #     data_array_NN[i]= pd.DataFrame({'RR' : data_array_NN[i]})
+    # data_array_heart=[]
+    # for i in range(15,29,1):
+    #     if i ==4 or i == 26 or i == 25 or i ==18 or i == 5 or i == 6 or i == 7 or  i == 8 or i == 22 or i == 23 or i ==28 or i ==12  or i==13 or i ==11 or i ==10:
+    #         continue
+    #     print(file_path)
+    #     file_path='./data_zastoinowa_niewydolnosc_serca/rr'+ '.txt.'+str(i)
+    #     data_array_heart.append(read_and_detrend_hrv(file_path))
+    # NN_heart =[]    
+    # for i in range(len(data_array_heart)):
+    #     NN_heart.append(hrv.get_nn_intervals(data_array_heart[i],verbose= False))
+    #     NN_heart[i]= pd.DataFrame({'RR' : NN_heart[i]})
+    # data_array_heart_failure=[]
+    # for i in range(0,22,1):
+    #     if i == 0:
+    #         file_path='./data_nagla_smierc/rr'+ '.txt.'#str(i)
+    #     else:
+    #         file_path='./data_nagla_smierc/rr'+ '.txt.'+str(i)
+    #     if i == 10 or i ==21 or i == 22 or i == 23:
+    #         continue
+    #     print(file_path)
+    #     data_array_heart_failure.append(read_and_detrend_hrv(file_path))
+    # NN_heart_F =[]
+    # for i in range(len(data_array_heart_failure)):
+    #     NN_heart_F.append(hrv.get_nn_intervals(data_array_heart_failure[i],verbose= False))
+    #     NN_heart_F[i]= pd.DataFrame({'RR' : NN_heart_F[i]})
+    # data_array_heart_AF=[]  
+    # for i in range(0,25,1):
+    #     if i == 0:
+    #         file_path='./data_migotanie/rr'+ '.txt.'#str(i)
+    #     else:
+    #         file_path='./data_migotanie/rr'+ '.txt.'+str(i)
+    #     if i == 1 or i ==6 or i == 18 or i == 23:
+    #         continue
+    #     print(file_path)
+    #     data_array_heart_AF.append(read_and_detrend_hrv(file_path))
+    # NN_heart_AF =[]
+    # for i in range(len(data_array_heart_AF)):
+    #     NN_heart_AF.append(hrv.get_nn_intervals(data_array_heart_AF[i],verbose= False))
+    #     NN_heart_AF[i]= pd.DataFrame({'RR' : NN_heart_AF[i]})
     data_array = read_data_from_file(file_path)
     data_array= hrv.get_nn_intervals(data_array)
     mean_RR=sum(data_array)/len(data_array)
@@ -117,6 +225,8 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
     #Wyznaczenie Entropii
     entropy = round(ApEN(2,len(data_array),data_array,round(RMSSD(data_array),2)),3)
     print("Sample Entropy:",entropy )
+
+    
 
     #Policzenie wspolczynikow elpisy 
     H=SD1(data_array0)
@@ -149,6 +259,10 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
         plt.show()
         # time_domain_features = get_time_domain_features(data_array)  
         # print(time_domain_features)
+    import pandas as pd
+    data_array_freq= pd.DataFrame({'RR' : data_array})
+    frequency_values=frequencydomain(data_array_freq,False)
+    print(frequency_values)
     if GeneratePDF:
         data = {
         "": [
@@ -162,7 +276,11 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
             "Entropia",
             "SD1",
             "SD2",
-            "Ratio SD1/SD2"
+            "Ratio SD1/SD2",
+            "LF [ms^2]",
+            "HF [ms^2]",
+            "Total Power [ms^2]" ,
+            "Ratio LF/HF"
         ],
         "Wyniki": [
             round(mean_RR,2),
@@ -175,30 +293,39 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
             entropy,
             round(H,2),
             round(D,2),
-            round(H/D,2)
+            round(H/D,2),
+            round(frequency_values[0],2),
+            round(frequency_values[1],2),
+            round(frequency_values[2],2),
+            round(frequency_values[3],2)
+            ]
+        }
+        import pandas as pd
+        df1 = pd.DataFrame(data)
+        from matplotlib.backends.backend_pdf import PdfPages   
+        fig, ax =plt.subplots(figsize=(8,4))
+        ax.axis('tight')
+        ax.axis('off')
+        kolorowa_macierz = [['lightgray', 'lightgray'],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray' ],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray'],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray' ],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray' ],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray' ],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray' ],
+        ['white', 'white' ],
+        ['lightgray', 'lightgray' ]
         ]
-    }
-    import pandas as pd
-    df1 = pd.DataFrame(data)
-    from matplotlib.backends.backend_pdf import PdfPages   
-    fig, ax =plt.subplots(figsize=(8,4))
-    ax.axis('tight')
-    ax.axis('off')
-    kolorowa_macierz = [['lightgray', 'lightgray'],
-    ['white', 'white' ],
-    ['lightgray', 'lightgray' ],
-    ['white', 'white' ],
-    ['lightgray', 'lightgray'],
-    ['white', 'white' ],
-    ['lightgray', 'lightgray' ],
-    ['white', 'white' ],
-    ['lightgray', 'lightgray' ],
-    ['white', 'white' ],
-    ['lightgray', 'lightgray' ]]
-    the_table = ax.table(cellText=df1.values,colLabels=df1.columns,loc='top',cellColours=kolorowa_macierz, cellLoc= 'left' )
-    pp = PdfPages("table11.pdf")
-    pp.savefig(fig, bbox_inches='tight')
-    pp.close()
+        the_table = ax.table(cellText=df1.values,colLabels=df1.columns,loc='top',cellColours=kolorowa_macierz, cellLoc= 'left' )
+        pp = PdfPages("Tabela_z_wynikami_"+file_path[2:13]+"_"+file_path[14]+".pdf")
+        pp.savefig(fig, bbox_inches='tight')
+        pp.close()
 
 
 if __name__ == "__main__":

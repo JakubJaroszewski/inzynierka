@@ -221,3 +221,56 @@ plt.xlabel("False positvie")
 plt.ylabel("True positive")
 plt.legend(loc=4)
 plt.show()
+
+
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay
+cm = confusion_matrix(y_test,y_pred)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+TN=cm[0][0]
+FP=cm[0][1]
+FN=cm[1][0]
+TP=cm[1][1]
+print("Precyzja:" , TP/(TP+FP))
+print("NPV:" , TN/(FN+TN))
+print("czułość:" , TP/(TP+FN))
+print("swoistość:", TN/(FP+TN))
+print("Dokładność:", (TP+TN)/(TN+TP+FN+FP))
+plt.xlabel("Klasa predykcji")
+plt.ylabel("Klasa rzeczywista")
+plt.title("Tablica pomyłek RF")
+plt.savefig('./MacierzePomyłek/confusion_matrix_plot_LR.png')
+plt.show()
+
+data = {
+    "": [
+        "Precyzja [%]",
+        "NPV [%]" ,
+        "Czułość [%]",
+        "Swoistość [%]",
+        "Dokładność [%]"
+    ],
+    "Wyniki": [
+        round(TP/(TP+FP)*100,2),
+        round(TN/(FN+TN)*100,2),
+        round(TP/(TP+FN)*100,2),
+        round(TN/(FP+TN)*100,2),
+        round((TP+TN)/(TN+TP+FN+FP)*100,2)
+    ]
+}
+import pandas as pd
+df1 = pd.DataFrame(data)
+from matplotlib.backends.backend_pdf import PdfPages   
+fig, ax =plt.subplots(figsize=(8,4))
+ax.axis('tight')
+ax.axis('off')
+kolorowa_macierz = [['lightgray', 'lightgray'],
+['white', 'white' ],
+['lightgray', 'lightgray' ],
+['white', 'white' ],
+['lightgray', 'lightgray' ]]
+the_table = ax.table(cellText=df1.values,colLabels=df1.columns,loc='center',cellColours=kolorowa_macierz, cellLoc= 'left' )
+plt.title('LF wartości macierzy pomyłek', pad=-30)
+pp = PdfPages("./MacierzePomyłek/LF_values.pdf")
+pp.savefig(fig, bbox_inches='tight')
+pp.close()
