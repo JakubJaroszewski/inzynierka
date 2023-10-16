@@ -1,8 +1,8 @@
 import sys
 
-ShowPoincarePlot = False
-PathToFile = './data_zdrowi/5.txt' # ścieżka do pliku
-GeneratePDF = True # generowanie pdf z wynikami
+ShowPoincarePlot = True
+PathToFile = './output/rr.txt' # ścieżka do pliku
+GeneratePDF = False # generowanie pdf z wynikami
 
 try:
     with open('analiza_w_dziedzinie_czasu_plot.py', 'r') as file:

@@ -22,8 +22,9 @@ def read_data_from_file(file_path):
             value = float(line.strip())
             data.append(value)
     return data
-def SDNN(arr,mean):
+def SDNN(arr):
     sum=0
+    mean=np.mean(arr)
     for i in arr:
         sum+=(i-mean)**2 
     return np.sqrt(sum/len(arr))  
@@ -93,27 +94,37 @@ def ApEN(m,N,data,var):
     return np.log(((N-m-2)/(N-m-1))*AlphaV(k,var,m,N,data)/AlphaV(k,var,m+1,N,data))   
 def count_elements_in_bins(data, bins):
     hist, _ = np.histogram(data, bins=np.append(bins, bins[-1]))
-    return hist    
+    return hist 
 data_array=[]
 for i in range(2,48,1):
   file_path='./data_zdrowi/' + str(i)+ '.txt'
-  data_array.append(read_data_from_file(file_path))
-
+  data_array.append(read_data_from_file(file_path))   
 data_array_NN=[]
+import hrvanalysis as hrv
 for i in range(len(data_array)):
-  data_array_NN.append(hrv.get_nn_intervals(data_array[i]))
+  a=[]
+  a=hrv.get_nn_intervals(data_array[i])
+  if np.isnan(a).any():
+     continue
+  data_array_NN.append(a)
 
+zdrowy=1
+chory=0
 meanRR_list=[]
 SDNN_list=[]
 RMSSD_list=[]
 pNN50_list=[]
 SDANN_list=[]
-for i in range(46):
+zdrowy_list=[]
+for i in range(len(data_array_NN)):
+  if np.isnan(data_array_NN[i]).any():
+     continue
   meanRR_list.append(round(sum(data_array_NN[i])/len(data_array_NN[i]),2))
-  SDNN_list.append(round(SDNN(data_array_NN[i],meanRR_list[i]),2)) 
+  SDNN_list.append(round(SDNN(data_array_NN[i]),2)) 
   RMSSD_list.append(round(RMSSD(data_array_NN[i]),2))
   pNN50_list.append(round(pNN50(data_array_NN[i])*100,2))
   SDANN_list.append(segmentation(data_array_NN[i]))
+  zdrowy_list.append(zdrowy)
 
 data_array_heart=[]
 for i in range(2,29,1):
@@ -126,18 +137,15 @@ NN_heart =[]
 for i in range(len(data_array_heart)):
   NN_heart.append(hrv.get_nn_intervals(data_array_heart[i]))
 
-meanRR_list_heart=[]
-SDNN_list_heart=[]
-RMSSD_list_heart=[]
-pNN50_list_heart=[]
-SDANN_list_heart=[]
-
 for i in range(24):
-  meanRR_list_heart.append(round(sum(NN_heart[i])/len(NN_heart[i]),2))
-  SDNN_list_heart.append(round(SDNN(NN_heart[i],meanRR_list_heart[i]),2)) 
-  RMSSD_list_heart.append(round(RMSSD(NN_heart[i]),2))
-  pNN50_list_heart.append(round(pNN50(NN_heart[i])*100,2))
-  SDANN_list_heart.append(segmentation(NN_heart[i]))
+  if np.isnan(NN_heart[i]).any():
+     continue
+  meanRR_list.append(round(sum(NN_heart[i])/len(NN_heart[i]),2))
+  SDNN_list.append(round(SDNN(NN_heart[i]),2)) 
+  RMSSD_list.append(round(RMSSD(NN_heart[i]),2))
+  pNN50_list.append(round(pNN50(NN_heart[i])*100,2))
+  SDANN_list.append(segmentation(NN_heart[i]))
+  zdrowy_list.append(chory)
 
 
 data_array_heart_failure=[]
@@ -152,19 +160,15 @@ NN_heart_F =[]
 for i in range(len(data_array_heart_failure)):
   NN_heart_F.append(hrv.get_nn_intervals(data_array_heart_failure[i]))
 
-
-meanRR_list_heart_failure=[]
-SDNN_list_heart_failure=[]
-RMSSD_list_heart_failure=[]
-pNN50_list_heart_failure=[]
-SDANN_list_heart_failure=[]
-
 for i in range(23):
-  meanRR_list_heart_failure.append(round(sum(NN_heart_F[i])/len(NN_heart_F[i]),2))
-  SDNN_list_heart_failure.append(round(SDNN(NN_heart_F[i],meanRR_list_heart_failure[i]),2)) 
-  RMSSD_list_heart_failure.append(round(RMSSD(NN_heart_F[i]),2))
-  pNN50_list_heart_failure.append(round(pNN50(NN_heart_F[i])*100,2))
-  SDANN_list_heart_failure.append(segmentation(NN_heart_F[i]))
+  if np.isnan(NN_heart_F[i]).any():
+     continue
+  meanRR_list.append(round(sum(NN_heart_F[i])/len(NN_heart_F[i]),2))
+  SDNN_list.append(round(SDNN(NN_heart_F[i]),2)) 
+  RMSSD_list.append(round(RMSSD(NN_heart_F[i]),2))
+  pNN50_list.append(round(pNN50(NN_heart_F[i])*100,2))
+  SDANN_list.append(segmentation(NN_heart_F[i]))
+  zdrowy_list.append(chory)
 
 data_array_heart_AF=[]
 for i in range(0,25,1):
@@ -178,34 +182,21 @@ NN_heart_AF =[]
 for i in range(len(data_array_heart_AF)):
   NN_heart_AF.append(hrv.get_nn_intervals(data_array_heart_AF[i]))
 
-
-meanRR_list_heart_AF=[]
-SDNN_list_heart_AF=[]
-RMSSD_list_heart_AF=[]
-pNN50_list_heart_AF=[]
-SDANN_list_heart_AF=[]
-
-
-
-
 for i in range(len(NN_heart_AF)):
-  meanRR_list_heart_AF.append(round(sum(NN_heart_AF[i])/len(NN_heart_AF[i]),2))
-  SDNN_list_heart_AF.append(round(SDNN(NN_heart_AF[i],meanRR_list_heart_AF[i]),2)) 
-  RMSSD_list_heart_AF.append(round(RMSSD(NN_heart_AF[i]),2))
-  pNN50_list_heart_AF.append(round(pNN50(NN_heart_AF[i])*100,2))
-  SDANN_list_heart_AF.append(segmentation(NN_heart_AF[i]))
-
-# lista mówiąca o tym czy ktos zalicza sie do zdrowych czy do chorych 
-label0 = np.ones(len(data_array_heart))
-label1=np.zeros(118-len(data_array_heart))
-label= np.concatenate((label0, label1))
-
+  if np.isnan(NN_heart_AF[i]).any():
+     continue
+  meanRR_list.append(round(sum(NN_heart_AF[i])/len(NN_heart_AF[i]),2))
+  SDNN_list.append(round(SDNN(NN_heart_AF[i]),2)) 
+  RMSSD_list.append(round(RMSSD(NN_heart_AF[i]),2))
+  pNN50_list.append(round(pNN50(NN_heart_AF[i])*100,2))
+  SDANN_list.append(segmentation(NN_heart_AF[i]))
+  zdrowy_list.append(chory)
 data = {
-   'Średnie RR': meanRR_list+meanRR_list_heart+meanRR_list_heart_failure+meanRR_list_heart_AF,
-   'SDNN' : SDNN_list+SDNN_list_heart+SDNN_list_heart_failure+SDNN_list_heart_AF,
-   'RMSSD' : RMSSD_list+RMSSD_list_heart+RMSSD_list_heart_failure+RMSSD_list_heart_AF,
-   'pNN50' : pNN50_list+pNN50_list_heart+pNN50_list_heart_failure+pNN50_list_heart_AF,
-   'zdrowy' : label
+   'Średnie RR': meanRR_list,
+   'SDNN' : SDNN_list,
+   'RMSSD' : RMSSD_list,
+   'pNN50' : pNN50_list,
+   'zdrowy' : zdrowy_list
 }
 import pandas as pd
 from xgboost import XGBClassifier
@@ -218,7 +209,11 @@ from sklearn.model_selection import GridSearchCV
 X = table.drop('zdrowy', axis=1) 
 y = data['zdrowy']
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,stratify=y)
+print(y_test)
+print(y_train)
+print(X_train)
+print(X_test)
 
 # model = XGBClassifier()
 # model.fit(X_train, y_train)
@@ -239,6 +234,7 @@ y_pred = model.predict(dtest)
 predictions = [round(value) for value in y_pred]
 
 accuracy = accuracy_score(y_test, predictions)
+
 print("Accuracy: %.2f%%" % (accuracy * 100.0))
 
 
@@ -283,7 +279,7 @@ print("swoistość:", TN/(FP+TN))
 print("Dokładność:", (TP+TN)/(TN+TP+FN+FP))
 plt.xlabel("Klasa predykcji")
 plt.ylabel("Klasa rzeczywista")
-plt.title("Tablica pomyłek RF")
+plt.title("Tablica pomyłek XGB")
 plt.savefig('./MacierzePomyłek/confusion_matrix_plot_XGB.png')
 plt.show()
 

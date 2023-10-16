@@ -17,8 +17,9 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
                 value = float(line.strip())
                 data.append(value)
         return data
-    def SDNN(arr,mean):
+    def SDNN(arr):
         sum=0
+        mean=np.mean(arr)
         for i in arr:
             sum+=(i-mean)**2 
         return np.sqrt(sum/len(arr))  
@@ -199,9 +200,18 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
     #     NN_heart_AF[i]= pd.DataFrame({'RR' : NN_heart_AF[i]})
     data_array = read_data_from_file(file_path)
     data_array= hrv.get_nn_intervals(data_array)
+    plt.figure(1)
+    plt.subplot(1, 1, 1) 
+    plt.plot(data_array)
+    plt.show()
+    plt.xlabel("interwał RR")
+    plt.ylabel("czas")
+
+
     mean_RR=sum(data_array)/len(data_array)
+    print(mean_RR)
     print('mean RR:',round(mean_RR,2))
-    print('SDNN: ', round(SDNN(data_array,mean_RR),2))
+    print('SDNN: ', round(SDNN(data_array),2))
     print('RMSSD: ', round(RMSSD(data_array),2))
     print('pNN50: ', round(pNN50(data_array)*100,2), '%')
     print('SDANN:', segmentation(data_array))
@@ -326,7 +336,7 @@ def main(ShowPoincarePlot, file_path_get,GeneratePDF):
         pp = PdfPages("Tabela_z_wynikami_"+file_path[2:13]+"_"+file_path[14]+".pdf")
         pp.savefig(fig, bbox_inches='tight')
         pp.close()
-
+    print(get_time_domain_features(data_array))
 
 if __name__ == "__main__":
     main()
