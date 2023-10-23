@@ -2,7 +2,7 @@ import pandas as pd
 # program słuzy do dopasowywania danych, tab aby je potem wykorzstac
 for i in range(0,18,1):
   if i == 0:
-    file_path='./data_zdrowi2/rr'+ '.txt.'#str(i)
+    file_path='./test/rr'+ '.txt.'#str(i)
   else:
     file_path='./data_zdrowi2/rr'+ '.txt.'+str(i)
   print(file_path)

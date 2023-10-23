@@ -98,8 +98,11 @@ def count_elements_in_bins(data, bins):
     hist, _ = np.histogram(data, bins=np.append(bins, bins[-1]))
     return hist    
 data_array=[]
-for i in range(2,48,1):
-  file_path='./data_zdrowi/' + str(i)+ '.txt'
+katalog="./data_nowe_RR/"
+import os
+for plik in os.listdir(katalog):
+  file_path=katalog+plik
+  print(file_path)
   data_array.append(read_data_from_file(file_path))
 data_array_NN=[]
 import hrvanalysis as hrv
@@ -114,7 +117,7 @@ RMSSD_list=[]
 pNN50_list=[]
 SDANN_list=[]
 zdrowy_list=[]
-for i in range(46):
+for i in range(len(data_array_NN)):
   meanRR_list.append(round(sum(data_array_NN[i])/len(data_array_NN[i]),2))
   SDNN_list.append(round(SDNN(data_array_NN[i]),2)) 
   RMSSD_list.append(round(RMSSD(data_array_NN[i]),2))
@@ -224,7 +227,7 @@ print("Dokładność:", (TP+TN)/(TN+TP+FN+FP))
 plt.xlabel("Klasa predykcji")
 plt.ylabel("Klasa rzeczywista")
 plt.title("Tablica pomyłek RF")
-plt.savefig('./MacierzePomyłek/confusion_matrix_plot_DT.png')
+plt.savefig('./MacierzePomyłek/confusion_matrix_plot_nowe_dane.png')
 plt.show()
 
 data = {
@@ -256,6 +259,6 @@ kolorowa_macierz = [['lightgray', 'lightgray'],
 ['lightgray', 'lightgray' ]]
 the_table = ax.table(cellText=df1.values,colLabels=df1.columns,loc='center',cellColours=kolorowa_macierz, cellLoc= 'left' )
 plt.title('Drzewo decyzyjne wartości macierzy pomyłek', pad=-30)
-pp = PdfPages("./MacierzePomyłek/DT_values.pdf")
+pp = PdfPages("./MacierzePomyłek/values_new.pdf")
 pp.savefig(fig, bbox_inches='tight')
 pp.close()

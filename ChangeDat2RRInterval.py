@@ -3,13 +3,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as sg
-
-
-filename = "./test/100"
-save_folder = "./output/"
-record = wfdb.rdrecord(filename, sampfrom=0, sampto=500000,)    
-annotation = wfdb.rdann(filename, 'atr', sampfrom=0, sampto=500000,shift_samps=True)
-
 # wfdb.plot_wfdb(record=record, annotation=annotation, time_units='seconds',figsize=(15,8))
 
 class Pan_Tompkins_QRS():
@@ -85,10 +78,6 @@ class Pan_Tompkins_QRS():
     global mwin
     mwin = self.moving_window_integration(sqr.copy())
     return mwin
-
-QRS_detector = Pan_Tompkins_QRS()
-ecg = pd.DataFrame(np.array([list(range(len(record.adc()))),record.adc()[:,0]]).T,columns=['TimeStamp','ecg'])
-output_singal = QRS_detector.solve(ecg)
 
 class heart_rate():
 
@@ -244,21 +233,35 @@ class heart_rate():
         self.update_thresholds()
     self.ecg_searchback()
     return self.result
+  
+import glob
+import os
+katalog = './dane_nowe_zdrowi/'
+save_folder = "./data_nowe_RR_zdrowi/"
+Split=5
+for plik in os.listdir(katalog):
+  filename = plik[0:Split]
+  print(plik)
+  record = wfdb.rdrecord(katalog+filename, sampfrom=0, sampto=500000,)    
+  annotation = wfdb.rdann(katalog+filename, 'atr', sampfrom=0, sampto=500000,shift_samps=True)
+  if plik[-1]=='t':
+    QRS_detector = Pan_Tompkins_QRS()
+    ecg = pd.DataFrame(np.array([list(range(len(record.adc()))),record.adc()[:,0]]).T,columns=['TimeStamp','ecg'])
+    output_singal = QRS_detector.solve(ecg)
+    signal = ecg.iloc[:,1].to_numpy()
+    hr = heart_rate(signal,annotation.fs)
+    result = hr.find_r_peaks()
+    result = np.array(result)
+    rr_intervals = []
+    for i in range(1, len(result)):
+        rr_interval = ((result[i] - result[i - 1]) / annotation.fs) *1000
+        if rr_interval == 0:
+          continue
+        rr_intervals.append(round(rr_interval,2))
 
-signal = ecg.iloc[:,1].to_numpy()
-hr = heart_rate(signal,annotation.fs)
-result = hr.find_r_peaks()
-result = np.array(result)
-rr_intervals = []
-for i in range(1, len(result)):
-    rr_interval = ((result[i] - result[i - 1]) / annotation.fs) *1000
-    if rr_interval == 0:
-      continue
-    rr_intervals.append(round(rr_interval,2))
-
-
-with open(save_folder+'rr.txt', 'w') as file:
-    for rr_interval in rr_intervals[4:]:
-        file.write(f"{rr_interval:.0f}\n")
+    print(save_folder+filename[0:Split]+'.txt')
+    with open(save_folder+filename[0:Split]+'.txt', 'w') as file:
+        for rr_interval in rr_intervals[4:]:
+            file.write(f"{rr_interval:.0f}\n")
 
 
