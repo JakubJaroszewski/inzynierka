@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal as sg
-# wfdb.plot_wfdb(record=record, annotation=annotation, time_units='seconds',figsize=(15,8))
+
 
 class Pan_Tompkins_QRS():
   def band_pass_filter(self,signal):
@@ -236,14 +236,15 @@ class heart_rate():
   
 import glob
 import os
-katalog = './dane_nowe_zdrowi/'
+katalog = './nowe_dane_zdrowi_1/'
 save_folder = "./data_nowe_RR_zdrowi/"
-Split=5
+Split=4
+
 for plik in os.listdir(katalog):
   filename = plik[0:Split]
   print(plik)
-  record = wfdb.rdrecord(katalog+filename, sampfrom=0, sampto=500000,)    
-  annotation = wfdb.rdann(katalog+filename, 'atr', sampfrom=0, sampto=500000,shift_samps=True)
+  record = wfdb.rdrecord(katalog+filename, sampfrom=0, sampto=35000,)    
+  annotation = wfdb.rdann(katalog+filename, 'atr', sampfrom=0, sampto=35000,shift_samps=True)
   if plik[-1]=='t':
     QRS_detector = Pan_Tompkins_QRS()
     ecg = pd.DataFrame(np.array([list(range(len(record.adc()))),record.adc()[:,0]]).T,columns=['TimeStamp','ecg'])

@@ -98,12 +98,14 @@ def count_elements_in_bins(data, bins):
     hist, _ = np.histogram(data, bins=np.append(bins, bins[-1]))
     return hist    
 data_array=[]
-katalog="./data_nowe_RR/"
+katalog="./data_nowe_RR_zdrowi/"
 import os
 for plik in os.listdir(katalog):
   file_path=katalog+plik
   print(file_path)
   data_array.append(read_data_from_file(file_path))
+
+
 data_array_NN=[]
 import hrvanalysis as hrv
 for i in range(len(data_array)):
@@ -198,12 +200,11 @@ table = pd.DataFrame(data)
 feature_cols = ['Średnie RR', 'SDNN', 'RMSSD', 'pNN50']
 X = table[feature_cols] 
 y = table.zdrowy 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1,stratify=y) 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,stratify=y) 
 clf = DecisionTreeClassifier(criterion="gini",)
 clf = clf.fit(X_train,y_train)
 y_pred = clf.predict(X_test)
-print(y_test)
-print(y_pred)
+
 print("Accuracy",round(metrics.accuracy_score(y_test, y_pred),2))
 tree_rules = export_text(clf, feature_names=feature_cols, show_weights=True)
 fig, ax = plt.subplots(figsize=(12, 12))
@@ -227,7 +228,7 @@ print("Dokładność:", (TP+TN)/(TN+TP+FN+FP))
 plt.xlabel("Klasa predykcji")
 plt.ylabel("Klasa rzeczywista")
 plt.title("Tablica pomyłek RF")
-plt.savefig('./MacierzePomyłek/confusion_matrix_plot_nowe_dane.png')
+plt.savefig('./MacierzePomyłek/confusion_matrix_plot_nowe_dane_DT.png')
 plt.show()
 
 data = {
@@ -259,6 +260,6 @@ kolorowa_macierz = [['lightgray', 'lightgray'],
 ['lightgray', 'lightgray' ]]
 the_table = ax.table(cellText=df1.values,colLabels=df1.columns,loc='center',cellColours=kolorowa_macierz, cellLoc= 'left' )
 plt.title('Drzewo decyzyjne wartości macierzy pomyłek', pad=-30)
-pp = PdfPages("./MacierzePomyłek/values_new.pdf")
+pp = PdfPages("./MacierzePomyłek/values_new_DT.pdf")
 pp.savefig(fig, bbox_inches='tight')
 pp.close()

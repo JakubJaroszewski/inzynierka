@@ -100,7 +100,7 @@ def count_elements_in_bins(data, bins):
     hist, _ = np.histogram(data, bins=np.append(bins, bins[-1]))
     return hist    
 data_array=[]
-katalog="./data_nowe_RR/"
+katalog="./data_nowe_RR_zdrowi/"
 import os
 for plik in os.listdir(katalog):
   file_path=katalog+plik
